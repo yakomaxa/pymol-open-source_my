@@ -6130,7 +6130,7 @@ static PyObject *CmdMICAN(PyObject *self, PyObject *args)
 
   if(ok) {
     APIEnterBlocked(G);
-    result = (PyObject*) ExecutiveCEAlign(G, listA, listB, lenA, lenB, d0, d1, windowSize, gap_max);
+    result = (PyObject*) ExecutiveMICAN(G, listA, listB, lenA, lenB, d0, d1, windowSize, gap_max);
     APIExitBlocked(G);
   }
   return result;

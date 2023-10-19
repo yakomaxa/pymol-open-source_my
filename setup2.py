@@ -265,6 +265,7 @@ pymol_src_dirs = [
     "layer3",
     "layer4",
     "layer5",
+    "mican",
     generated_dir,
 ]
 

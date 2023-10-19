@@ -16433,6 +16433,65 @@ PyObject * ExecutiveCEAlign(PyMOLGlobals * G, PyObject * listA, PyObject * listB
 #endif
 }
 
+PyObject * ExecutiveMICAN(PyMOLGlobals * G, PyObject * listA, PyObject * listB, int lenA, int lenB, float d0, float d1, int windowSize, int gapMax) {
+#ifdef _PYMOL_NOPY
+  return NULL;
+#else
+  int i=0;
+  int smaller;
+  double **dmA ,**dmB, **S;
+  int bufferSize;
+  pcePoint coordsA, coordsB;
+  pathCache paths = NULL;
+  PyObject * result;
+
+  smaller = lenA < lenB ? lenA : lenB;
+	
+  /* get the coodinates from the Python objects */
+  coordsA = (pcePoint) getCoords(listA, lenA);
+  coordsB = (pcePoint) getCoords(listB, lenB);
+	
+  /* calculate the distance matrix for each protein */
+  dmA = (double**) calcDM(coordsA, lenA);
+  dmB = (double**) calcDM(coordsB, lenB);
+	
+  /* calculate the CE Similarity matrix */
+  S = (double**) calcS(dmA, dmB, lenA, lenB, windowSize);
+	
+  /* find the best path through the CE Sim. matrix */
+  bufferSize = 0;
+
+  /* the following line HANGS PyMOL */
+  paths = (pathCache) findPath(S, dmA, dmB, lenA, lenB, d0, d1, windowSize, gapMax, &bufferSize);
+	
+  /* Get the optimal superposition here... */
+  result = (PyObject*) findBest(coordsA, coordsB, paths, bufferSize, smaller, windowSize);
+	
+  /* release memory */
+  free(coordsA);
+  free(coordsB);
+  for ( i = 0; i < bufferSize; ++i )
+    free(paths[i]);
+  free(paths);
+	
+  /* distance matrices	 */
+  for ( i = 0; i < lenA; i++ )
+    free( dmA[i] );
+  free(dmA);
+	
+  for  ( i = 0; i < lenB; i++ )
+    free( dmB[i] );
+  free(dmB);
+	
+  /* similarity matrix */
+  for ( i = 0; i < lenA; i++ )
+    free( S[i] );
+  free(S);
+	
+  return (PyObject*) result;
+#endif
+}
+
 char *ExecutiveGetObjectNames(PyMOLGlobals * G, int mode, const char *name, int enabled_only, int *numstrs){
   char *res;
   int size=0, stlen;

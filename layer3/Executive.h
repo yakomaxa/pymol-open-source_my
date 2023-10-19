@@ -754,6 +754,9 @@ int ExecutiveAssignAtomTypes(PyMOLGlobals * G, const char *s1, int format, int s
 PyObject * ExecutiveCEAlign(PyMOLGlobals * G, PyObject * listA, PyObject * listB, int lenA, int lenB,
 			    float d0, float d1, int windowSize, int gapMax);
 
+PyObject * ExecutiveMICAN(PyMOLGlobals * G, PyObject * listA, PyObject * listB, int lenA, int lenB,
+			    float d0, float d1, int windowSize, int gapMax);
+
 pymol::Result<> ExecutiveSetFeedbackMask(
     PyMOLGlobals* G, int action, unsigned int sysmod, unsigned char mask);
 pymol::Result<> ExecutiveClip(PyMOLGlobals* G, pymol::zstring_view clipStr);
