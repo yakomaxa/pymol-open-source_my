@@ -35,6 +35,7 @@ def get_command_keywords(self_cmd=cmd):
         'cartoon'       : [ self_cmd.cartoon           , 0 , 0 , ''  , parsing.STRICT ],
         'capture'       : [ self_cmd.capture           , 0 , 0 , ''  , parsing.STRICT ],
         'cealign'       : [ self_cmd.cealign	       , 0 , 0 , ''  , parsing.STRICT ],
+        'mican '        : [ self_cmd.mican	       , 0 , 0 , ''  , parsing.STRICT ],
         'centerofmass'  : [ self_cmd.centerofmass      , 0 , 0 , ''  , parsing.STRICT ],
         'cd'            : [ self_cmd.cd                , 0 , 0 , ''  , parsing.STRICT ],
         'center'        : [ self_cmd.center            , 0 , 0 , ''  , parsing.STRICT ],

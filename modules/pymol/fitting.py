@@ -134,6 +134,117 @@ SEE ALSO
                 if _self._raising(r,_self): raise pymol.CmdException
                 return ( {"alignment_length": aliLen, "RMSD" : RMSD, "rotation_matrix" : rotMat } )
 
+
+        def mican(target, mobile, target_state=1, mobile_state=1, quiet=1,
+                    guide=1, d0=3.0, d1=4.0, window=8, gap_max=30, transform=1,
+                    object=None, *, _self=cmd):
+                '''
+DESCRIPTION
+
+    "cealign" aligns two proteins using the CE algorithm.
+
+USAGE 
+
+    cealign target, mobile [, target_state [, mobile_state [, quiet [,
+        guide [, d0 [, d1 [, window [, gap_max, [, transform ]]]]]]]]]
+
+NOTES
+
+    If "guide" is set PyMOL will align using only alpha carbons, which is the
+    default behavior. Otherwise, PyMOL will use all atoms. If "quiet" is set
+    to -1, PyMOL will print the rotation matrix as well.
+
+    Reference: Shindyalov IN, Bourne PE (1998) Protein structure alignment by
+    incremental combinatorial extension (CE) of the optimal path.  Protein
+    Engineering 11(9) 739-747.
+
+EXAMPLES
+
+    cealign protA////CA, protB////CA
+
+    # fetch two proteins and align them
+    fetch 1rlw 1rsy, async=0
+    cealign 1rlw, 1rsy
+
+SEE ALSO
+
+    align, pair_fit, fit, rms, rms_cur, intra_rms, intra_rms_cur, super
+                '''
+                quiet = int(quiet)
+                window = int(window)
+                guide = "" if int(guide)==0 else "and guide"
+
+                mobile = "(%s) %s" % (mobile,guide)
+                target = "(%s) %s" % (target,guide)
+
+                # handle PyMOL's macro /// notation
+                mobile = selector.process(mobile)
+                target = selector.process(target)
+
+                # make the lists for holding coordinates and IDs
+                mod1 = _self.get_model(target, state=target_state)
+                mod2 = _self.get_model(mobile, state=mobile_state)
+                sel1 = mod1.get_coord_list()
+                sel2 = mod2.get_coord_list()
+                ids1 = [a.id for a in mod1.atom]
+                ids2 = [a.id for a in mod2.atom]
+
+                if len(sel1) < 2 * window:
+                        print("CEalign-Error: Your target selection is too short.")
+                        raise pymol.CmdException
+                if len(sel2) < 2 * window:
+                        print("CEalign-Error: Your mobile selection is too short.")
+                        raise pymol.CmdException
+                if window < 3:
+                        print("CEalign-Error: window size must be an integer greater than 2.")
+                        raise pymol.CmdException
+                if int(gap_max) < 0:
+                        print("CEalign-Error: gap_max must be a positive integer.")
+                        raise pymol.CmdException
+
+                r = DEFAULT_ERROR
+
+                try:
+                        _self.lock(_self)
+
+                        # call the C function
+                        r = _cmd.mican( _self._COb, sel1, sel2, float(d0), float(d1), int(window), int(gap_max) )
+
+                        (aliLen, RMSD, rotMat, i1, i2) = r
+                        if quiet==-1:
+                                import pprint
+                                print("RMSD %f over %i residues" % (float(RMSD), int(aliLen)))
+                                print("TTT Matrix:")
+                                pprint.pprint(rotMat)
+                        elif quiet==0:
+                                print("RMSD %f over %i residues" % (float(RMSD), int(aliLen)))
+
+                        if int(transform):
+                            for model in _self.get_object_list("(" + mobile + ")"):
+                                _self.transform_object(model, rotMat, state=0)
+
+                        if object is not None:
+                            obj1 = _self.get_object_list("(" + target + ")")
+                            obj2 = _self.get_object_list("(" + mobile + ")")
+                            if len(obj1) > 1 or len(obj2) > 1:
+                                print(' CEalign-Error: selection spans multiple' + \
+                                        ' objects, cannot create alignment object')
+                                raise pymol.CmdException
+                            tmp1 = _self.get_unused_name('_1')
+                            tmp2 = _self.get_unused_name('_2')
+                            _self.select_list(tmp1, obj1[0], [ids1[j] for i in i1 for j in range(i, i+window)])
+                            _self.select_list(tmp2, obj2[0], [ids2[j] for i in i2 for j in range(i, i+window)])
+                            _self.rms_cur(tmp2, tmp1, cycles=0, matchmaker=4, object=object)
+                            _self.delete(tmp1)
+                            _self.delete(tmp2)
+                except SystemError:
+                    # findBest might return NULL, which raises SystemError
+                    print(" CEalign-Error: alignment failed")
+                finally:
+                        _self.unlock(r,_self)
+                if _self._raising(r,_self): raise pymol.CmdException
+                return ( {"alignment_length": aliLen, "RMSD" : RMSD, "rotation_matrix" : rotMat } )
+
         def extra_fit(selection='(all)', reference='', method='align', zoom=1,
                 quiet=0, *, _self=cmd, **kwargs):
             '''

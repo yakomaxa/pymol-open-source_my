@@ -6089,6 +6089,53 @@ static PyObject *CmdCEAlign(PyObject *self, PyObject *args)
   return result;
 }
 
+static PyObject *CmdMICAN(PyObject *self, PyObject *args)
+{
+  PyMOLGlobals * G = NULL;
+  int ok = false;
+  int windowSize = 8, gap_max=30;
+  float d0=3.0, d1=4.0;
+  PyObject *listA, *listB, *result;
+  Py_ssize_t lenA, lenB;
+
+  /* Unpack the arguments from Python */
+
+  ok = PyArg_ParseTuple(args, "OOO|ffii", &self, &listA, &listB, &d0, &d1, &windowSize, &gap_max);
+
+  /* Handle errors */
+
+  if(ok) {
+    API_SETUP_PYMOL_GLOBALS;
+    ok = (G != NULL);
+  } else {
+    API_HANDLE_ERROR;
+  }
+
+  /* Get the list lengths */
+
+  lenA = PyList_Size(listA);
+  if (lenA < 1) {
+    result = NULL;
+    ok = false;
+  }
+	
+  if(ok)
+    lenB = PyList_Size(listB);
+  if (ok && lenB < 1) {
+    result = NULL;
+    ok = false;
+  }
+
+  /* Call CEAlign */
+
+  if(ok) {
+    APIEnterBlocked(G);
+    result = (PyObject*) ExecutiveCEAlign(G, listA, listB, lenA, lenB, d0, d1, windowSize, gap_max);
+    APIExitBlocked(G);
+  }
+  return result;
+}
+
 static PyObject *CmdVolume(PyObject *self, PyObject *args)
 { 
   PyMOLGlobals *G = NULL;
@@ -6275,6 +6322,7 @@ static PyMethodDef Cmd_methods[] = {
   /*  {"cache",                 CmdCache,                METH_VARARGS }, */
   {"cartoon", CmdCartoon, METH_VARARGS},
   {"cealign", CmdCEAlign, METH_VARARGS},
+  {"mican", CmdMICAN, METH_VARARGS},
   {"center", CmdCenter, METH_VARARGS},
   {"cif_get_array", CmdCifGetArray, METH_VARARGS},
   {"clip", CmdClip, METH_VARARGS},

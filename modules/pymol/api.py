@@ -295,8 +295,9 @@ from .fitting import \
       intra_fit,         \
       intra_rms,         \
       intra_rms_cur,     \
-      cealign,          \
-      pair_fit
+      cealign,           \
+      pair_fit,          \
+      mican             
 
 #--------------------------------------------------------------------
 # ARE ALL OF THESE UNUSED AND/OR DEPRECATED (?)
